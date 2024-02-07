@@ -9,6 +9,7 @@ use Doctrine\DBAL\Schema\Table;
 use Doctrine\DBAL\Tests\FunctionalTestCase;
 use Doctrine\DBAL\Types\Types;
 use Throwable;
+use PDO;
 
 use function array_change_key_case;
 
@@ -92,6 +93,33 @@ class PrimaryReadReplicaConnectionTest extends FunctionalTestCase
 
             self::assertSame($charset, $clientCharset);
         }
+    }
+
+    public function testDriverOptionsOnConnect(): void
+    {
+        $params = $this->createPrimaryReadReplicaConnectionParams();
+        $params['driverOptions'] = [PDO::ATTR_CASE => PDO::CASE_UPPER];
+
+        $conn = DriverManager::getConnection($params);
+        self::assertInstanceOf(PrimaryReadReplicaConnection::class, $conn);
+
+        $conn->ensureConnectedToReplica();
+
+        self::assertSame(
+            PDO::CASE_UPPER,
+            $conn
+                ->getNativeConnection()
+                ->getAttribute(PDO::ATTR_CASE),
+        );
+
+        $conn->ensureConnectedToPrimary();
+
+        self::assertSame(
+            PDO::CASE_UPPER,
+            $conn
+                ->getNativeConnection()
+                ->getAttribute(PDO::ATTR_CASE),
+        );
     }
 
     public function testPrimaryOnConnect(): void

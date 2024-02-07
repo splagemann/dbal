@@ -251,6 +251,10 @@ class PrimaryReadReplicaConnection extends Connection
 
         $connectionParams = $this->chooseConnectionConfiguration($connectionName, $params);
 
+        if (! isset($connectionParams['driverOptions']) && isset($params['driverOptions'])) {
+            $connectionParams['driverOptions'] = $params['driverOptions'];
+        }
+
         try {
             return $this->_driver->connect($connectionParams);
         } catch (DriverException $e) {
